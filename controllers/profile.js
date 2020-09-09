@@ -84,12 +84,14 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
         matchArr.push(matchR);
       }
 
-      let profileObj = {
-        profileName: profile.profileName,
-        matchLength: matchArr.length,
-        matches: matchArr,
-      };
-      collectionArray.push(profileObj);
+      if (profile) {
+        let profileObj = {
+          profileName: profile.profileName,
+          matchLength: matchArr.length,
+          matches: matchArr,
+        };
+        collectionArray.push(profileObj);
+      }
     }
 
     res.json(collectionArray);

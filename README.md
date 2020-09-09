@@ -21,8 +21,8 @@ For this API to work a few things is needed. An AWS ID aswell as an AWS SECRET k
 
 A .env file needs to be added with the following variables.
 
-MONGODB_URI=
-JWT_SECRET=
-PORT=
-AWS_ID=
+MONGODB_URI=<br/>
+JWT_SECRET=<br/>
+PORT=<br/>
+AWS_ID=<br/>
 AWS_SECRET=
