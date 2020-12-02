@@ -14,12 +14,24 @@ const s3 = new AWS.S3({
   secretAccessKey: config.AWS_SECRET,
 });
 
+function sortProfilesAlphabetically(a, b) {
+  if (a.profileName < b.profileName) {
+    return -1;
+  }
+  if (a.profileName > b.profileName) {
+    return 1;
+  }
+  return 0;
+}
+
 // Get profiles route
 // @route POST api/profiles
 // @desc retrieve profiles for user
 // @access Public
 profileRouter.get("/profiles", verify, async (req, res) => {
   try {
+    console.log("HERE--------------------");
+    console.log(req.user.id);
     const userId = req.user.id;
     const profileArray = [];
     let profileObj = {};
@@ -49,25 +61,36 @@ profileRouter.get("/profiles", verify, async (req, res) => {
 // @desc Get matches for profiles
 // @access Public
 profileRouter.get("/getProfileMatches", verify, async (req, res) => {
+  console.log("PROFILE MATCHES");
   const userId = req.user.id;
   // Object with profile with matches
   const profileObject = {};
   let collectionArray = [];
+  // Array for all matched images
+  let allMatches = [];
+  // Array for images with no matches
+  let noMatches = [];
+
   try {
     const resp = await axios.get(
       `https://cnl6xcx67l.execute-api.eu-west-2.amazonaws.com/live/getprofilematches?collectionId=${userId}`
     );
 
     const data = resp.data;
+    // console.log("DATA: ", data);
 
     // Get all uploads from user
     // Store uploads imageUrls in array
     uploadsArr = [];
     const uploadsRes = await Upload.find({ userId: userId });
+    // console.log("UPLOAD RES: ", uploadsRes);
 
     uploadsRes.forEach((upload) => {
       uploadsArr.push(upload.imageUrl);
     });
+
+    // console.log("UPLOADS: ", uploadsArr);
+    // console.log("DATA: ", data);
 
     // Loop through profiles
     for (i = 0; i < data["profiles"].length; i++) {
@@ -84,6 +107,8 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
         matchArr.push(matchR);
       }
 
+      allMatches = allMatches.concat(matchArr);
+
       if (profile) {
         let profileObj = {
           profileName: profile.profileName,
@@ -93,6 +118,32 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
         collectionArray.push(profileObj);
       }
     }
+
+    // Filter matches array for duplicates
+    let matched = allMatches.filter(
+      (item, index) => allMatches.indexOf(item) === index
+    );
+
+    // Loop through uploads and filter images that had no matches
+    uploadsArr.map((upload) => {
+      if (!matched.includes(upload)) {
+        noMatches.push(upload);
+      }
+    });
+
+    // Sort Alphabetically
+    collectionArray.sort(sortProfilesAlphabetically);
+
+    // Create object for no matches profile
+    let otherObj = {
+      profileName: "Other",
+      matchLength: noMatches.length,
+      matches: noMatches,
+    };
+
+    // Push no matches to collection
+    collectionArray.push(otherObj);
+    console.log("COLLECTION: ", collectionArray);
 
     res.json(collectionArray);
   } catch (err) {
