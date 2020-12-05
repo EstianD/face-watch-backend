@@ -77,13 +77,13 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
     );
 
     const data = resp.data;
-    // console.log("DATA: ", data);
 
     // Get all uploads from user
     // Store uploads imageUrls in array
     uploadsArr = [];
     const uploadsRes = await Upload.find({ userId: userId });
-    // console.log("UPLOAD RES: ", uploadsRes);
+    console.log("UPLOADS: ", uploadsRes);
+    console.log("MATCHES: ", data);
 
     uploadsRes.forEach((upload) => {
       uploadsArr.push(upload.imageUrl);
@@ -155,7 +155,7 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
 // @route POST api/profiles
 // @desc Delete a specific profile
 // @access Public
-profileRouter.post("/delete", verify, async (req, res) => {
+profileRouter.post("/deleteProfile", verify, async (req, res) => {
   const profileId = req.body.id;
   const userId = req.user.id;
 
@@ -184,6 +184,16 @@ profileRouter.post("/delete", verify, async (req, res) => {
       msg: "Something went wrong!",
     });
   }
+});
+
+// Delete profile route
+// @route POST api/profiles
+// @desc Delete a specific profile
+// @access Public
+profileRouter.post("/deleteImage", verify, async (req, res) => {
+  console.log("DELETE IMAGE");
+
+  res.json({ status: 200, msg: "hello" });
 });
 
 module.exports = profileRouter;
