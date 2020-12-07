@@ -186,14 +186,53 @@ profileRouter.post("/deleteProfile", verify, async (req, res) => {
   }
 });
 
-// Delete profile route
+// Delete Image route
 // @route POST api/profiles
-// @desc Delete a specific profile
+// @desc Delete a specific Image from the gallery
 // @access Public
 profileRouter.post("/deleteImage", verify, async (req, res) => {
   console.log("DELETE IMAGE");
 
-  res.json({ status: 200, msg: "hello" });
+  // console.log(req.body.image);
+  // console.log(req.user.id);
+
+  try {
+    // Check if image req passed
+    if (req.body.image) {
+      const userId = req.user.id;
+      const imageUrl = req.body.image;
+
+      // Check if image exist in db
+      const uploadedImage = await Upload.findOne({ imageUrl });
+      console.log(uploadedImage);
+      const imageKey = `${userId}/${imageUrl.split("/")[4]}`;
+      console.log(imageKey);
+
+      // Set AWS image params
+      const params = {
+        Bucket: "face-watch",
+        Key: imageKey,
+      };
+
+      // Delete image from aws
+      await s3.deleteObject(params).promise();
+
+      // Delete image from db
+      await uploadedImage.remove();
+
+      res.json({
+        status: 200,
+        msg: "ok",
+      });
+    }
+  } catch (err) {
+    res.json({
+      status: 500,
+      msg: "Something went wrong!",
+    });
+  }
+
+  // res.json({ status: 200, msg: "hello" });
 });
 
 module.exports = profileRouter;
