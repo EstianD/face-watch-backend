@@ -55,7 +55,7 @@ usersRouter.post("/register", async (req, res) => {
         `https://tvctoiq355.execute-api.eu-west-2.amazonaws.com/test/test?collectionId=${savedUser.id}`
       );
 
-      console.log(colResponse);
+      console.log("Register AWS response: ", colResponse);
       if (colResponse.status === 200) {
         // Collection created successfully
         res.json({ status: true });

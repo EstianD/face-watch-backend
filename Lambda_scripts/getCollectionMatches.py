@@ -8,7 +8,7 @@ def lambda_handler(event, context):
     profileBucket = "face-watch-profiles"
     uploadsBucket = "face-watch"
     threshold = 80
-    maxFaces=5
+    maxFaces=50
     
     print("START")
     print(collectionId)
