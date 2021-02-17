@@ -30,8 +30,6 @@ function sortProfilesAlphabetically(a, b) {
 // @access Public
 profileRouter.get("/profiles", verify, async (req, res) => {
   try {
-    // console.log("HERE--------------------");
-    console.log(req.user.id);
     const userId = req.user.id;
     const profileArray = [];
     let profileObj = {};
@@ -63,7 +61,6 @@ profileRouter.get("/profiles", verify, async (req, res) => {
 // @desc Get matches for profiles
 // @access Public
 profileRouter.get("/getProfileMatches", verify, async (req, res) => {
-  console.log("PROFILE MATCHES");
   const userId = req.user.id;
   // Object with profile with matches
   const profileObject = {};
@@ -77,15 +74,10 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
     // Check if profiles exist for user before calling AWS API
     const uploadsRes = await Upload.find({ userId: userId });
 
-    console.log("Uploads response: ", uploadsRes);
-
     if (uploadsRes.length !== 0) {
-      console.log("There is images");
       const resp = await axios.get(
         `https://cnl6xcx67l.execute-api.eu-west-2.amazonaws.com/live/getprofilematches?collectionId=${userId}`
       );
-
-      console.log("RESPONSE:", resp);
 
       const data = resp.data;
 
@@ -93,15 +85,9 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
       // Store uploads imageUrls in array
       uploadsArr = [];
 
-      // console.log("UPLOADS: ", uploadsRes);
-      // console.log("MATCHES: ", data);
-
       uploadsRes.forEach((upload) => {
         uploadsArr.push(upload.imageUrl);
       });
-
-      // console.log("UPLOADS: ", uploadsArr);
-      // console.log("DATA: ", data);
 
       // Loop through profiles
       for (i = 0; i < data["profiles"].length; i++) {
@@ -156,15 +142,13 @@ profileRouter.get("/getProfileMatches", verify, async (req, res) => {
 
       // Push no matches to collection
       collectionArray.push(otherObj);
-      // console.log("COLLECTION: ", collectionArray);
 
       res.json(collectionArray);
     } else {
-      console.log("There is no images");
-      res.json({ matches: uploadsRes });
+      res.json(collectionArray);
     }
   } catch (err) {
-    // console.log(err);
+    console.log(err);
   }
 });
 
@@ -178,7 +162,6 @@ profileRouter.post("/deleteProfile", verify, async (req, res) => {
 
   try {
     const profile = await Profile.findOne({ _id: profileId });
-
     const imageName = profile.imageName;
 
     // AWS S3 Bucket config
@@ -208,11 +191,6 @@ profileRouter.post("/deleteProfile", verify, async (req, res) => {
 // @desc Delete a specific Image from the gallery
 // @access Public
 profileRouter.post("/deleteImage", verify, async (req, res) => {
-  console.log("DELETE IMAGE");
-
-  // console.log(req.body.image);
-  // console.log(req.user.id);
-
   try {
     // Check if image req passed
     if (req.body.image) {
@@ -221,9 +199,7 @@ profileRouter.post("/deleteImage", verify, async (req, res) => {
 
       // Check if image exist in db
       const uploadedImage = await Upload.findOne({ imageUrl });
-      console.log(uploadedImage);
       const imageKey = `${userId}/${imageUrl.split("/")[4]}`;
-      console.log(imageKey);
 
       // Set AWS image params
       const params = {
