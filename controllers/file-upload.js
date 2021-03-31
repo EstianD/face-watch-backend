@@ -99,7 +99,7 @@ uploadRouter.post("/profile", verify, async (req, res) => {
 
     return res.json({
       status: 200,
-      msg: "success",
+      msg: "Uploaded successfully",
       profile: profile,
     });
   } catch (err) {
@@ -131,7 +131,6 @@ uploadRouter.post("/gallery", verify, async (req, res) => {
     // Check if file allready exists in db
     const fileExists = await Upload.findOne({ imageUrl: imgString });
 
-    console.log("saving...");
     if (!fileExists) {
       // Image url ex: "https://face-watch.s3.amazonaws.com/5ebc250b315756357b7269a0/Keanu_Reeves_1.jpg"
       const upload = new Upload({
@@ -141,6 +140,12 @@ uploadRouter.post("/gallery", verify, async (req, res) => {
 
       await upload.save();
     }
+  };
+
+  // Limit user to 100 uploads
+  const checkUserLimit = async (userId) => {
+    const userUploads = await Upload.find({ userId: userId });
+    return userUploads.length;
   };
 
   try {
@@ -159,8 +164,15 @@ uploadRouter.post("/gallery", verify, async (req, res) => {
         let key = `${req.user.id}/${newFileName}`;
         const imageString = `https://face-watch.s3.amazonaws.com/${key}`;
 
-        await saveGalleryUploadToDb(imageString);
-        await uploadFile(key, files.image[i].data, bucket);
+        if ((await checkUserLimit(req.user.id)) <= 100) {
+          await saveGalleryUploadToDb(imageString);
+          await uploadFile(key, files.image[i].data, bucket);
+        } else {
+          res.json({
+            status: 400,
+            msg: "Upload limit reached",
+          });
+        }
       }
     } else {
       //If it is only 1 image
@@ -177,18 +189,27 @@ uploadRouter.post("/gallery", verify, async (req, res) => {
       let key = `${req.user.id}/${newFileName}`;
       const imageString = `https://face-watch.s3.amazonaws.com/${key}`;
 
-      await saveGalleryUploadToDb(imageString);
-      await uploadFile(key, filedata, bucket);
+      // Check user upload limit
+      // Fail if number uploads > 100
+      if ((await checkUserLimit(req.user.id)) <= 100) {
+        await saveGalleryUploadToDb(imageString);
+        await uploadFile(key, filedata, bucket);
+      } else {
+        res.json({
+          status: 400,
+          msg: "Upload limit reached",
+        });
+      }
     }
 
     res.json({
       status: 200,
-      msg: "success",
+      msg: "Files uploaded successfully",
     });
   } catch (err) {
     res.json({
       status: 400,
-      msg: "failed",
+      msg: "Upload failed, please try again later",
     });
   }
 });
