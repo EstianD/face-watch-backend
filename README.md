@@ -5,7 +5,7 @@ This is the backend code(API) for the face-watch app. Refer to the [face-watch-f
 ## Functionality
 This code contains all the API endpoints for the Face-watch application and uses mongodb to store the necessary data.<br/>
 User Authentication.<br/>
-File uploads.(S3)<br/>
+File uploads(S3).<br/>
 API endpoints to create indexes on S3 for facial data.<br/>
 Serverless lambda functions that handles the facial rekognition.<br/> 
 
